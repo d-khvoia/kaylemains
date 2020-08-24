@@ -1,0 +1,37 @@
+Primary sources viewed and used:
+
+1. https://spring.io/guides/tutorials/rest/
+
+Secondary sources viewed (some used):
+
+1. https://spring-projects.ru/guides/rest-service/
+2. https://www.baeldung.com/java-date-difference
+3. https://stackoverflow.com/questions/21622911/java-data-structure-for-fast-insertion-deletion-and-random-selection
+4. https://www.baeldung.com/entity-to-and-from-dto-for-a-java-spring-application
+5. https://stackoverflow.com/questions/40902280/what-is-the-recommended-project-structure-for-spring-boot-rest-projects
+6. https://stackoverflow.com/questions/4702036/take-n-random-elements-from-a-liste
+7. https://howtodoinjava.com/java/collections/hashmap/design-good-key-for-hashmap/
+8. https://howtodoinjava.com/java/basics/how-to-make-a-java-class-immutable/
+9. https://stackoverflow.com/questions/4110045/get-next-item-in-linkedhashmap
+10. https://beginnersbook.com/2014/07/java-hashmap-iterator-example/
+11. https://beginnersbook.com/2013/12/how-to-loop-hashmap-in-java/
+12. https://habr.com/ru/post/263033/
+13. https://stackoverflow.com/questions/50865099/persist-non-primitive-data-in-jpa
+14. https://stackoverflow.com/questions/1005523/how-to-add-one-day-to-a-date/1005550
+15. https://ru.stackoverflow.com/questions/1098110/basic-attribute-type-should-not-be-a-container
+16. https://www.baeldung.com/spring-boot-h2-database
+17. https://stackoverflow.com/questions/1281952/what-is-the-easiest-way-to-ignore-a-jpa-field-during-persistence
+18. https://stackoverflow.com/questions/45302132/h2-not-creating-updating-table-in-my-spring-boot-app-somethings-wrong-with-my
+19. https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache
+20. https://stackoverflow.com/questions/51691744/spring-boot-with-h2-database-auto-create/51691833
+21. https://stackoverflow.com/questions/26881739/unable-to-get-spring-boot-to-automatically-create-database-schema
+22. https://www.jetbrains.com/help/idea/database-tool-window.html
+23. https://stackoverflow.com/questions/58443100/problem-creating-table-in-h2-database-with-springboot
+24. https://stackoverflow.com/questions/4560813/specifying-distinct-sequence-per-table-in-hibernate-on-subclasses
+25. https://stackoverflow.com/questions/9739150/best-practice-to-choose-fields-for-equals-implementation
+26. https://intellij-support.jetbrains.com/hc/en-us/community/posts/206948405-Intellij-can-t-find-classes-in-same-package
+27. https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method#java-interface-static-method
+28.
+
+
+
