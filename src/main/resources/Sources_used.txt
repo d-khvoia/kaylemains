@@ -31,7 +31,8 @@ Secondary sources viewed (some used):
 25. https://stackoverflow.com/questions/9739150/best-practice-to-choose-fields-for-equals-implementation
 26. https://intellij-support.jetbrains.com/hc/en-us/community/posts/206948405-Intellij-can-t-find-classes-in-same-package
 27. https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method#java-interface-static-method
-28.
+28. https://attacomsian.com/blog/spring-data-jpa-one-to-many-mapping
+29. https://stackoverflow.com/questions/13370221/persistentobjectexception-detached-entity-passed-to-persist-thrown-by-jpa-and-h
 
 
 
