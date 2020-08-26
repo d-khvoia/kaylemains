@@ -1,6 +1,8 @@
 Primary sources viewed and used:
 
 1. https://spring.io/guides/tutorials/rest/
+2. https://code.tutsplus.com/tutorials/a-beginners-guide-to-http-and-rest--net-16340
+3. https://www.tutorialspoint.com/spring_boot/spring_boot_rest_controller_unit_test.htm
 
 Secondary sources viewed (some used):
 
@@ -33,6 +35,8 @@ Secondary sources viewed (some used):
 27. https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method#java-interface-static-method
 28. https://attacomsian.com/blog/spring-data-jpa-one-to-many-mapping
 29. https://stackoverflow.com/questions/13370221/persistentobjectexception-detached-entity-passed-to-persist-thrown-by-jpa-and-h
-
-
-
+30. https://www.javatpoint.com/spring-mvc-multiple-controller-example
+31. https://spring.io/guides/gs/accessing-data-rest/
+32. https://stackoverflow.com/questions/63550568/is-it-possible-to-make-spring-boot-jpa-hibernate-application-to-automatically-cr/63550737#63550737
+33. http://zetcode.com/spring/getmapping/
+34. https://www.javaguides.net/2018/11/spring-getmapping-postmapping-putmapping-deletemapping-patchmapping.html

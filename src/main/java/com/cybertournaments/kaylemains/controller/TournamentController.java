@@ -1,111 +1,150 @@
 package com.cybertournaments.kaylemains.controller;
 
-import com.cybertournaments.kaylemains.domain.model.Match;
+import com.cybertournaments.kaylemains.api.TournamentManagerService;
+import com.cybertournaments.kaylemains.controller.assembler.ParticipantModelAssembler;
+import com.cybertournaments.kaylemains.controller.assembler.TournamentModelAssembler;
 import com.cybertournaments.kaylemains.domain.model.Participant;
 import com.cybertournaments.kaylemains.domain.model.Tournament;
-import com.cybertournaments.kaylemains.exception.MatchNotFoundException;
-import com.cybertournaments.kaylemains.exception.ParticipantNotFoundException;
 import com.cybertournaments.kaylemains.exception.TournamentNotFoundException;
-import com.cybertournaments.kaylemains.repository.MatchRepository;
-import com.cybertournaments.kaylemains.repository.ParticipantRepository;
 import com.cybertournaments.kaylemains.repository.TournamentRepository;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import static com.cybertournaments.kaylemains.api.TournamentManagerService.*;
 
 @RestController
 public class TournamentController {
-    private final TournamentRepository tournamentRepository;
-    private final MatchRepository matchRepository;
-    private final ParticipantRepository participantRepository;
 
-    public TournamentController(TournamentRepository tournamentRepository, ParticipantRepository participantRepository, MatchRepository matchRepository) {
-        this.tournamentRepository = tournamentRepository;
-        this.participantRepository = participantRepository;
-        this.matchRepository = matchRepository;
-    }
+    private final TournamentManagerService tournamentManagerService;
 
-    @GetMapping("/tournaments")
-    CollectionModel<EntityModel<Tournament>> all() {
+    private final TournamentRepository repository;
 
-        List<EntityModel<Tournament>> tournaments = tournamentRepository.findAll().stream()
-                .map(tournament -> EntityModel.of(tournament,
-                        linkTo(methodOn(TournamentController.class).one(tournament.getId())).withSelfRel(),
-                        linkTo(methodOn(TournamentController.class).all()).withRel("employees")))
-                .collect(Collectors.toList());
+    private final TournamentModelAssembler tournamentModelAssembler;
+    private final ParticipantModelAssembler participantModelAssembler;
 
-        return CollectionModel.of(tournaments, linkTo(methodOn(TournamentController.class).all()).withSelfRel());
-    }
+    public TournamentController(TournamentManagerService tms, TournamentRepository rep, TournamentModelAssembler tma, ParticipantModelAssembler pma) {
 
-    @PostMapping("/tournaments")
-    public Tournament newTournament(@RequestBody Tournament newTournament) {
-        return tournamentRepository.save(newTournament);
-    }
-
-    @GetMapping("/tournaments/{id}/addParticipants")
-    public void addParticipantsToTournament(@PathVariable Long id, @RequestBody List<Participant> participants) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException(id));
-        addParticipants(tournament, participants);
-        participantRepository.saveAll(participants);
-    }
-
-    @GetMapping("matches/{id}/summary")
-    public String getMatchSummary(@PathVariable Long id) {
-        Match m = matchRepository.findById(id)
-                .orElseThrow(() -> new MatchNotFoundException(id));
-        return m.getSummary();
-    }
-
-    @DeleteMapping("/tournaments/{id}/participants/{pid}")
-    public void deleteParticipant(@PathVariable Long id, @PathVariable Long pid) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException(id));
-        Participant participant = participantRepository.findById(id)
-                .orElseThrow(() -> new ParticipantNotFoundException(pid));
-        removeParticipant(tournament, participant);
-        participantRepository.delete(participant);
-    }
-
-    @GetMapping("/tournaments/{id}/run")
-    public void runTournament(@PathVariable Long id) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException(id));
-        while (tournament.getParticipants().size() != 1)
-            holdRound(tournament);
-    }
-
-    @GetMapping("/tournaments/{id}/start")
-    public void startTournament(@PathVariable Long id) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException(id));
-        start(tournament);
+        tournamentManagerService = tms;
+        repository = rep;
+        tournamentModelAssembler = tma;
+        participantModelAssembler = pma;
     }
 
     @GetMapping("/tournaments/{id}")
     public EntityModel<Tournament> one(@PathVariable Long id) {
-        Tournament tournament = tournamentRepository.findById(id)
-            .orElseThrow(() -> new TournamentNotFoundException(id));
 
-        return EntityModel.of(tournament,
-                linkTo(methodOn(TournamentController.class).one(id)).withSelfRel(),
-                linkTo(methodOn(TournamentController.class).all()).withRel("tournaments"));
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        return tournamentModelAssembler.toModel(tournament);
+    }
+
+    @GetMapping("/tournaments")
+    public CollectionModel<EntityModel<Tournament>> all() {
+
+        List<EntityModel<Tournament>> tournaments = repository.findAll().stream()
+                .map(tournamentModelAssembler::toModel).collect(Collectors.toList());
+
+        return CollectionModel.of(tournaments, linkTo(methodOn(TournamentController.class).all()).withSelfRel());
+    }
+
+    @GetMapping("/tournaments/{id}/participants")
+    public CollectionModel<EntityModel<Participant>> allParticipants(@PathVariable Long id) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        List<EntityModel<Participant>> participants = tournament.getParticipants().stream()
+                .map(participantModelAssembler::toModel).collect(Collectors.toList());
+
+        return CollectionModel.of(participants, linkTo(methodOn(TournamentController.class).all()).withSelfRel());
+    }
+
+    @PostMapping("/tournaments")
+    public Tournament newTournament(@RequestBody Tournament newTournament) {
+        return repository.save(newTournament);
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public List<Participant> addParticipants(@PathVariable Long id, @RequestBody List<Participant> participants) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.addParticipants(tournament, participants);
+
+        return participants;
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public Participant addParticipant(@PathVariable Long id, @RequestBody Participant participant) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.addParticipant(tournament, participant);
+
+        return participant;
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public Tournament startTournament(@PathVariable Long id) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.start(tournament);
+
+        return repository.save(tournament);
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public Tournament pauseTournament(@PathVariable Long id) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.pause(tournament);
+
+        return repository.save(tournament);
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public Tournament resumeTournament(@PathVariable Long id) {
+
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.resume(tournament);
+
+        return repository.save(tournament);
+    }
+
+    @PutMapping("/tournaments/{id}")
+    public Tournament holdRound(@PathVariable Long id) {
+        Tournament tournament = repository.findById(id)
+                .orElseThrow(() -> new TournamentNotFoundException(id));
+
+        tournamentManagerService.holdRound(tournament);
+
+        return repository.save(tournament);
+    }
+
+    @DeleteMapping("/tournaments/{tournamentID}/participants/{participantID}")
+    public void deleteParticipant(@PathVariable Long tournamentID, @PathVariable Long participantID) {
+        Tournament tournament = repository.findById(tournamentID)
+                .orElseThrow(() -> new TournamentNotFoundException(tournamentID));
+
+        tournamentManagerService.removeParticipantByID(tournament, participantID);
     }
 
     @DeleteMapping("/tournaments/{id}")
     public void deleteTournament(@PathVariable Long id) {
-        tournamentRepository.deleteById(id);
+        repository.deleteById(id);
     }
 }
