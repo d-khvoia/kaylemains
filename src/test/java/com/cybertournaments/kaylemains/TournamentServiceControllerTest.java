@@ -98,10 +98,12 @@ public class TournamentServiceControllerTest extends AbstractTest {
     @Test
     public void addParticipant() throws Exception {
         String uri = "/tournaments/1";
-        Participant participant = new Participant();
-        participant.setNickname("Random25");
 
-        String inputJson = super.mapToJson(participant);
+        Tournament tournament = new Tournament("Kayle Mains Competition: Summoner's Gorge", 16);
+
+        tournamentManagerService.addParticipant(tournament, new Participant(tournament,"Random25"));
+
+        String inputJson = super.mapToJson(tournament);
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.put(uri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE).content(inputJson)).andReturn();
 

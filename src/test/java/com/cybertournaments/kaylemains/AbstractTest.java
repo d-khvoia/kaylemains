@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = KaylemainsApplication.class)
 @WebAppConfiguration
-public class AbstractTest {
+public abstract class AbstractTest {
 
     protected MockMvc mvc;
 
