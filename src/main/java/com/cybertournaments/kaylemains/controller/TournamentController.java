@@ -140,7 +140,7 @@ public class TournamentController {
         Tournament tournament = repository.findById(tournamentID)
                 .orElseThrow(() -> new TournamentNotFoundException(tournamentID));
 
-        tournamentManagerService.removeParticipantByID(tournament, participantID);
+        tournamentManagerService.deleteParticipantByID(tournament, participantID);
     }
 
     @DeleteMapping("/tournaments/{id}")

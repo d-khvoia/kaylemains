@@ -1,28 +1,19 @@
-package com.cybertournaments.kaylemains.domain.model;
+package com.cybertournaments.kaylemains.manual_logic_testing;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.cybertournaments.kaylemains.util.NumberHelper.*;
+import static com.cybertournaments.kaylemains.util.NumberHelper.isPowerOfTwo;
 
-@Entity
-@SequenceGenerator(initialValue = 1, name = "idgen", sequenceName = "tournamentseq")
-@Table(name = "TOURNAMENT")
 public class Tournament {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgen")
     private Long id;
     private String name;
 
     private boolean isStarted = false;
     private boolean isOnHold = false;
+    private boolean isFinished = false;
 
     private int maxParticipants;
 
@@ -32,22 +23,18 @@ public class Tournament {
 
     private int currentRound = 0;
 
-    @OneToMany(mappedBy = "tournament", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JsonManagedReference
     private List<Match> matches = new ArrayList<Match>();
 
-    @OneToMany(mappedBy = "tournament", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JsonManagedReference
     private List<Participant> participants = new ArrayList<Participant>();
 
-    public Tournament() { }
-
-    public Tournament(String name) {
+    public Tournament(Long id, String name) {
         this.name = name;
         maxParticipants = 8;
     }
-    public Tournament(String name, int maxParticipants) {
+
+    public Tournament(Long id, String name, int maxParticipants) {
         if (maxParticipants >= 8 && isPowerOfTwo(maxParticipants)) {
+            this.id = id;
             this.maxParticipants = maxParticipants;
             this.name = name;
         } else throw new IllegalArgumentException();
@@ -84,6 +71,10 @@ public class Tournament {
     public void setOnHold(boolean onHold) {
         isOnHold = onHold;
     }
+
+    public boolean isFinished() { return isFinished; }
+
+    public void setFinished(boolean finished) { isFinished = finished; }
 
     public int getMaxParticipants() {
         return maxParticipants;
@@ -146,23 +137,28 @@ public class Tournament {
 
     @Override
     public String toString() {
-        String result = "Tournament # " + id + " | Name: " + name
-               + "\nMaximum number of participants: " + maxParticipants
-               + " | Current number of participants: " + participants.size()
-               + "\nNumber of single-elimination matches to be played: " + numberOfMatches
-               + " | Number of current matches: " + matches.size()
-               + "\nCurrent round: " + currentRound;
-
-        if (isStarted) {
-            result += "\nThe tournament has started";
-            if (isOnHold) {
-                result += " | The tournament is currently on hold";
-            } else {
-                result += " | The tournament is currently in progress";
-            }
+        if (isFinished) {
+            return "Tournament # " + id + " | Name: " + name + " is finished.\nWinner: "
+                    + participants.get(0).toString();
         } else {
-            result += "\nThe tournament has not been started yet";
+            String result = "Tournament # " + id + " | Name: " + name
+                    + "\nMaximum number of participants: " + maxParticipants
+                    + " | Current number of participants: " + participants.size()
+                    + "\nNumber of single-elimination matches to be played: " + numberOfMatches
+                    + " | Number of current matches: " + matches.size()
+                    + "\nCurrent round: " + currentRound;
+
+            if (isStarted) {
+                result += "\nThe tournament has started";
+                if (isOnHold) {
+                    result += " | The tournament is currently on hold";
+                } else {
+                    result += " | The tournament is currently in progress";
+                }
+            } else {
+                result += "\nThe tournament has not been started yet";
+            }
+            return result;
         }
-        return result;
     }
 }

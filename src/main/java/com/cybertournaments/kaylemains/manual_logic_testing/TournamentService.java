@@ -1,16 +1,8 @@
-package com.cybertournaments.kaylemains.domain.service.impl;
+package com.cybertournaments.kaylemains.manual_logic_testing;
 
-import com.cybertournaments.kaylemains.api.TournamentManagerService;
-import com.cybertournaments.kaylemains.domain.model.Match;
-import com.cybertournaments.kaylemains.domain.model.Participant;
-import com.cybertournaments.kaylemains.domain.model.Tournament;
 import com.cybertournaments.kaylemains.exception.IllegalParticipantAdditionException;
 import com.cybertournaments.kaylemains.exception.IllegalParticipantDeletionException;
 import com.cybertournaments.kaylemains.exception.IllegalParticipantsAdditionException;
-import com.cybertournaments.kaylemains.repository.MatchRepository;
-import com.cybertournaments.kaylemains.repository.ParticipantRepository;
-import com.cybertournaments.kaylemains.repository.TournamentRepository;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -19,40 +11,26 @@ import java.util.List;
 import static com.cybertournaments.kaylemains.util.NumberHelper.getNearestPowerOfTwo;
 import static com.cybertournaments.kaylemains.util.NumberHelper.isPowerOfTwo;
 
+public class TournamentService {
 
-@Service
-public class TournamentManagerServiceImpl implements TournamentManagerService {
+    public void addParticipant(Long participantID, Tournament tournament, String nickname) {
 
-    private final ParticipantRepository participantRepository;
-    private final MatchRepository matchRepository;
+        Participant p = new Participant(participantID, tournament, nickname);
 
-    public TournamentManagerServiceImpl(TournamentRepository tournamentRepository, ParticipantRepository participantRepository, MatchRepository matchRepository) {
-
-        this.participantRepository = participantRepository;
-        this.matchRepository = matchRepository;
-    }
-
-    public void addParticipant(Tournament t, String nickname) {
-
-        Participant p = new Participant(t, nickname);
-
-        if (!t.isStarted() && t.getParticipants().size() < t.getMaxParticipants()) {
-            t.getParticipants().add(p);
-            participantRepository.save(p);
+        if (!tournament.isStarted() && tournament.getParticipants().size() < tournament.getMaxParticipants()) {
+            tournament.getParticipants().add(p);
         } else throw new IllegalParticipantAdditionException(p.getId());
     }
 
     public void addParticipant(Tournament t, Participant p) {
         if (!t.isStarted() && t.getParticipants().size() < t.getMaxParticipants()) {
             t.getParticipants().add(p);
-            participantRepository.save(p);
         } else throw new IllegalParticipantAdditionException(p.getId());
     }
 
     public void addParticipants(Tournament t, List<Participant> participants) {
         if (!t.isStarted() && (t.getParticipants().size() + participants.size()) <= t.getMaxParticipants()) {
             t.getParticipants().addAll(participants);
-            participantRepository.saveAll(participants);
         } else throw new IllegalParticipantsAdditionException();
     }
 
@@ -61,23 +39,20 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
         Participant p = t.getParticipants().get(index);
 
         if (t.isOnHold()) {
-            participantRepository.delete(p);
             t.getParticipants().remove(index);
         } else throw new IllegalParticipantDeletionException(p.getId());
     }
 
-    public void deleteParticipantByID(Tournament t, Long id) {
+    public void deleteParticipantByID(Tournament t, Long participantID) {
 
         if (t.isOnHold()) {
-            participantRepository.deleteById(id);
-            t.getParticipants().removeIf(e -> e.getId() == id);
-        } else throw new IllegalParticipantDeletionException(id);
+            t.getParticipants().removeIf(e -> e.getId() == participantID);
+        } else throw new IllegalParticipantDeletionException(participantID);
     }
 
     public void deleteParticipant(Tournament t, Participant p) {
 
         if (t.isOnHold()) {
-            participantRepository.delete(p);
             t.getParticipants().remove(p);
         } else throw new IllegalParticipantDeletionException(p.getId());
     }
@@ -97,11 +72,8 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
 
     public String holdRound(Tournament t) {
 
-        int participantsNumber = t.getParticipants().size();
-
-        if (participantsNumber == 1) {
-            return "Tournament # " + t.getId() + " is finished.\nWinner: "
-                   + t.getParticipants().get(0).toString();
+        if (t.isFinished()) {
+            return t.toString();
         } else {
             t.setCurrentRound(t.getCurrentRound() + 1);
 
@@ -114,6 +86,10 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
             }
 
             removeLosers(t, firstHeldMatchIndex);
+
+            if (t.getParticipants().size() == 1) {
+                t.setFinished(true);
+            }
 
             return "Tournament # " + t.getId() + " | Round # " + t.getCurrentRound() + " completed.";
         }
@@ -137,18 +113,23 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
     //Pairing participants, creating and starting matches
     private void holdMatches(Tournament t, int firstToPlayIndex) {
 
+        int lastMatchIndex = t.getMatches().size() - 1;
+        long newMatchID;
+
+        if (lastMatchIndex == -1) {
+            newMatchID = 1;
+        } else {
+            newMatchID = t.getMatches().get(lastMatchIndex).getId() + 1;
+        }
+
         Match match;
-        int lastMatchIndex;
 
         for (int i = firstToPlayIndex, j = firstToPlayIndex + 1; j < t.getParticipants().size(); i += 2, j += 2) {
-            t.getMatches().add(new Match(t, t.getParticipants().get(i), t.getParticipants().get(j),
-                    LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+            match = new Match(newMatchID++, t, t.getParticipants().get(i), t.getParticipants().get(j),
+                    LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+            t.getMatches().add(match);
 
-            lastMatchIndex = t.getMatches().size() - 1;
-            match = t.getMatches().get(lastMatchIndex);
             match.start();
-
-            matchRepository.save(match);
         }
     }
 
@@ -160,10 +141,8 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
         for (int i = firstHeldMatchIndex; i <= lastHeldMatchIndex; i++) {
             match = t.getMatches().get(i);
             if (match.getFirstParticipantScore() == 1) {
-                participantRepository.delete(match.getSecondParticipant());
                 removeParticipant(t, match.getSecondParticipant());
             } else {
-                participantRepository.delete(match.getFirstParticipant());
                 removeParticipant(t, match.getFirstParticipant());
             }
         }
@@ -172,27 +151,17 @@ public class TournamentManagerServiceImpl implements TournamentManagerService {
     private void removeParticipantByIndex(Tournament t, int index) {
 
         Participant p = t.getParticipants().get(index);
-        participantRepository.delete(p);
         t.getParticipants().remove(index);
     }
 
     private void removeParticipantByID(Tournament t, Long id) {
 
-        participantRepository.deleteById(id);
         t.getParticipants().removeIf(e -> e.getId() == id);
     }
 
     private void removeParticipant(Tournament t, Participant p) {
 
-        participantRepository.delete(p);
         t.getParticipants().remove(p);
     }
 
-    public ParticipantRepository getParticipantRepository() {
-        return participantRepository;
-    }
-
-    public MatchRepository getMatchRepository() {
-        return matchRepository;
-    }
 }

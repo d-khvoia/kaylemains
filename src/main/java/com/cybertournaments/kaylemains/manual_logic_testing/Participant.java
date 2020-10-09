@@ -1,34 +1,26 @@
-package com.cybertournaments.kaylemains.domain.model;
+package com.cybertournaments.kaylemains.manual_logic_testing;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import javax.persistence.*;
 import java.util.Objects;
 
-@Entity
-@SequenceGenerator(initialValue = 1, name = "idgen", sequenceName = "participantseq")
-@Table(name = "PARTICIPANT")
 public class Participant {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgen")
     private Long id;
     private String nickname;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JsonBackReference
     private Tournament tournament;
 
     private int totalScore = 0;
 
-    public Participant() { }
+    public Participant(Long id, Tournament tournament) {
 
-    public Participant(Tournament tournament) {
+        this.id = id;
         this.tournament = tournament;
         nickname = "<empty>";
     }
 
-    public Participant(Tournament tournament, String nickname) {
+    public Participant(Long id, Tournament tournament, String nickname) {
+
+        this.id = id;
         this.tournament = tournament;
         this.nickname = nickname;
     }

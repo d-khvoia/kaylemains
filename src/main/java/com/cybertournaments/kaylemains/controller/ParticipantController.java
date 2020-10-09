@@ -30,10 +30,10 @@ public class ParticipantController {
     @GetMapping("/participants/{id}")
     public EntityModel<Participant> one(@PathVariable Long id) {
 
-        Participant tournament = repository.findById(id)
+        Participant participant = repository.findById(id)
                 .orElseThrow(() -> new ParticipantNotFoundException(id));
 
-        return assembler.toModel(tournament);
+        return assembler.toModel(participant);
     }
 
     @GetMapping("/participants")

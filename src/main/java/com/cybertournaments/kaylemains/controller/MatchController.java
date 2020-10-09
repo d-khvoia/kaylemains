@@ -39,10 +39,10 @@ public class MatchController {
     @GetMapping("/matches")
     public CollectionModel<EntityModel<Match>> all() {
 
-        List<EntityModel<Match>> tournaments = repository.findAll().stream()
+        List<EntityModel<Match>> matches = repository.findAll().stream()
             .map(assembler::toModel).collect(Collectors.toList());
 
-        return CollectionModel.of(tournaments, linkTo(methodOn(MatchController.class).all()).withSelfRel());
+        return CollectionModel.of(matches, linkTo(methodOn(MatchController.class).all()).withSelfRel());
     }
 
     @GetMapping("matches/{id}")
